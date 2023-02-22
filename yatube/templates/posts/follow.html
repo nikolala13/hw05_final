@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% block title %}
+    {{ title }}
+{% endblock %}
+{% block content %}
+    <h4>Мои подписки</h4>
+    {% include 'includes/switcher.html' %}
+        {% for post in page_obj %}
+            <article>
+                <ul>
+                    <li>
+                        Автор: {{ post.author.get_full_name }}
+                        <a href={% url 'posts:profile' post.author %}>все посты
+                            пользователя</a>
+                    </li>
+                    <li>
+                        Дата публикации: {{ post.pub_date|date:"d E Y" }}
+                    </li>
+                    {% if post.group %}
+                        <li>
+                            Группа: {{ post.group }}
+                        </li>
+                    {% endif %}
+                </ul>
+                {% thumbnail post.image "1200x600" crop="center" upscale=True as im %}
+                    <img class="card-img my-2" src="{{ im.url }}">
+                {% endthumbnail %}
+                <p>{{ post.text }}</p>
+                <a href="{% url 'posts:post_detail' post.pk %}">подробная
+                    информация</a>
+            </article>
+            <article>{% if post.group %}
+                <a href="{% url 'posts:group_list' post.group.slug %}">все
+                    записи
+                    группы</a>
+            {% endif %}
+            </article>
+            {% if not forloop.last %}
+                <hr>{% endif %}
+        {% endfor %}
+    {% include 'includes/paginator.html' %}
+{% endblock %}
