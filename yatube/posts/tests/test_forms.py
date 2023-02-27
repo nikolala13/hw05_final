@@ -2,7 +2,6 @@ import shutil
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.auth import get_user_model
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.conf import settings
@@ -47,6 +46,7 @@ class CreateFormTests(TestCase):
         self.REVERSE_ADRESS_COMMENT = reverse(
             'posts:add_comment', args=(self.post.pk,)
         )
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -63,7 +63,6 @@ class CreateFormTests(TestCase):
             data=form_data,
         )
         post = Post.objects.last()
-        context = {'username': self.user.username}
         self.assertRedirects(response, self.REVERSE_ADDRESS_PROFILE)
         self.assertEqual(Post.objects.count(), count_post + 1)
         self.assertEqual(post.text, form_data['text'])
@@ -74,10 +73,6 @@ class CreateFormTests(TestCase):
         form_data_new = {
             'text': 'Тестовый пост'
         }
-        post = Post.objects.create(
-            author=self.user,
-            text='Тестовый пост',
-        )
         self.authorized_client.post(
             self.REVERSE_ADDRESS_EDIT,
             data=form_data_new,
@@ -115,9 +110,9 @@ class CreateFormTests(TestCase):
             'image': uploaded,
         }
         response = self.authorized_client.post(
-           self.REVERSE_ADDRESS_CREATE,
-           data=form_data,
-           follow=True
+            self.REVERSE_ADDRESS_CREATE,
+            data=form_data,
+            follow=True
         )
         self.assertRedirects(
             response,
@@ -133,10 +128,6 @@ class CreateFormTests(TestCase):
 
     def test_create_comment_authorized_user(self):
         """Валидная форма создает комментарий."""
-        post = Post.objects.create(
-            author=CreateFormTests.user,
-            text='Текст',
-        )
         comments_count = Comment.objects.count()
         form_data = {
             'text': 'Тестовый комментарий',
@@ -155,4 +146,3 @@ class CreateFormTests(TestCase):
         response = self.authorized_client.get(
             self.REVERSE_ADDRESS_DETAIL
         )
-

@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 
 from .utils import paginate
-from .models import Post, Group, User, Comment, Follow
+from .models import Post, Group, User, Follow
 from .forms import CommentForm, PostForm
+
 
 @cache_page(20)
 def index(request):
@@ -138,5 +139,5 @@ def profile_unfollow(request, username):
     Follow.objects.get(
         user=request.user,
         author__username=username
-        ).delete()
+    ).delete()
     return redirect('posts:profile', username=username)

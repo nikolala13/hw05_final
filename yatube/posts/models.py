@@ -93,7 +93,7 @@ class Comment(models.Model):
         ordering = ('-created',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-    
+
     def _str_(self) -> str:
         return self.text[:15]
 
