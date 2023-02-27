@@ -23,6 +23,10 @@ class Group(models.Model):
         verbose_name='Описание'
     )
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
     def __str__(self):
         return self.title
 
@@ -89,6 +93,9 @@ class Comment(models.Model):
         ordering = ('-created',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+    
+    def _str_(self) -> str:
+        return self.text[:15]
 
 
 class Follow(models.Model):

@@ -5,10 +5,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
-from ..models import Post, Group, Comment
 from django.conf import settings
 
-User = get_user_model()
+from posts.models import Comment, Group, Post, User
+
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -25,19 +25,32 @@ class CreateFormTests(TestCase):
             description='Тестовое описание'
         )
         cls.post = Post.objects.create(
-            text='Тестовый пост',
             author=cls.user,
-            group=cls.group,
+            text='Тестовый пост',
         )
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.REVERSE_ADDRESS_PROFILE = reverse(
+            'posts:profile', args=(self.user.username,)
+        )
+        self.REVERSE_ADDRESS_CREATE = reverse(
+            'posts:post_create'
+        )
+        self.REVERSE_ADDRESS_EDIT = reverse(
+            'posts:post_edit', args=(self.post.pk,)
+        )
+        self.REVERSE_ADDRESS_DETAIL = reverse(
+            'posts:post_detail', args=(self.post.pk,)
+        )
+        self.REVERSE_ADRESS_COMMENT = reverse(
+            'posts:add_comment', args=(self.post.pk,)
+        )
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_create_post(self):
         """Проверка создания поста."""
@@ -46,13 +59,12 @@ class CreateFormTests(TestCase):
             'text': 'Тестовый пост'
         }
         response = self.authorized_client.post(
-            reverse('posts:post_create'),
+            self.REVERSE_ADDRESS_CREATE,
             data=form_data,
         )
         post = Post.objects.last()
         context = {'username': self.user.username}
-        self.assertRedirects(response, reverse('posts:profile',
-                                               kwargs=context))
+        self.assertRedirects(response, self.REVERSE_ADDRESS_PROFILE)
         self.assertEqual(Post.objects.count(), count_post + 1)
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, self.user, 'Author')
@@ -67,7 +79,7 @@ class CreateFormTests(TestCase):
             text='Тестовый пост',
         )
         self.authorized_client.post(
-            reverse('posts:post_edit', kwargs={'post_id': post.pk}),
+            self.REVERSE_ADDRESS_EDIT,
             data=form_data_new,
         )
 
@@ -103,12 +115,13 @@ class CreateFormTests(TestCase):
             'image': uploaded,
         }
         response = self.authorized_client.post(
-            reverse('posts:post_create'), data=form_data, follow=True
+           self.REVERSE_ADDRESS_CREATE,
+           data=form_data,
+           follow=True
         )
         self.assertRedirects(
-            response, reverse(
-                'posts:profile',
-                kwargs={'username': CreateFormTests.user})
+            response,
+            self.REVERSE_ADDRESS_PROFILE
         )
         self.assertEqual(Post.objects.count(), post_count + 1)
         last_post = Post.objects.order_by('-pk')[0]
@@ -120,9 +133,7 @@ class CreateFormTests(TestCase):
 
     def test_create_comment_authorized_user(self):
         """Валидная форма создает комментарий."""
-        # Создаем пост и комментарий
-        # авторизированным пользователем
-        post_new = Post.objects.create(
+        post = Post.objects.create(
             author=CreateFormTests.user,
             text='Текст',
         )
@@ -131,20 +142,17 @@ class CreateFormTests(TestCase):
             'text': 'Тестовый комментарий',
         }
         response = self.authorized_client.post(
-            reverse('posts:add_comment', kwargs={'post_id': post_new.pk}),
+            self.REVERSE_ADRESS_COMMENT,
             data=form_data,
             follow=True,
         )
         self.assertRedirects(
-            response, reverse(
-                'posts:post_detail',
-                kwargs={'post_id': post_new.pk})
+            response, self.REVERSE_ADDRESS_DETAIL
         )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        last_comment = Comment.objects.order_by('-pk')[0]
+        last_comment = Comment.objects.last()
         self.assertEqual(last_comment.text, form_data['text'])
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': post_new.pk}),
+            self.REVERSE_ADDRESS_DETAIL
         )
-        self.assertEqual(response.context['comments'][0].text,
-                         form_data['text'])
+

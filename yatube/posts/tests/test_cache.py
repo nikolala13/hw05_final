@@ -4,9 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from mixer.backend.django import mixer
 
-from posts.models import Post
-
-User = get_user_model()
+from posts.models import Post, User
 
 
 class TestCache(TestCase):

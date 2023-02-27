@@ -6,7 +6,7 @@
 {% block content %}  
   <h1>Последние обновления на сайте</h1>
 {% cache 20 'index_page' page_obj %}
-{% include 'includes/switcher.html'%}
+{% include 'includes/switcher.html' with index=True %}
 {% for post in page_obj %}
 {% include 'includes/post.html' %}
 <a href="{% url 'posts:post_detail' post.id %}">Подробная информация </a><br>
