@@ -17,14 +17,9 @@ GROUP_URL = reverse('posts:group_list', args=[SLUG])
 PROFILE_URL = reverse('posts:profile', args=[USERNAME])
 CREATE_URL = reverse('posts:post_create')
 UNEXIST_URL = '/unexisting_page/'
-# NOT_CSRF_URL = reverse()
 LOGIN_URL = reverse('users:login')
 CREATE_REDIRECT_URL = f'{LOGIN_URL}?next={CREATE_URL}'
 EDIT_REDIRECT_URL = f'{LOGIN_URL}?next=%2Fposts%2F1%2Fedit%2F'
-
-OK = HTTPStatus.OK
-FOUND = HTTPStatus.FOUND
-NOT_FOUND = HTTPStatus.NOT_FOUND
 
 
 class StaticURLTests(TestCase):
@@ -63,16 +58,16 @@ class StaticURLTests(TestCase):
         another = self.another
         not_author = self.not_author
         urls_client_status = [
-            [INDEX_URL, guest, OK],
-            [GROUP_URL, guest, OK],
-            [PROFILE_URL, guest, OK],
-            [self.DETAIL_URL, guest, OK],
-            [self.EDIT_URL, guest, FOUND],
-            [self.EDIT_URL, another, OK],
-            [self.EDIT_URL, not_author, FOUND],
-            [CREATE_URL, guest, FOUND],
-            [CREATE_URL, another, OK],
-            [UNEXIST_URL, guest, NOT_FOUND],
+            [INDEX_URL, guest, HTTPStatus.OK],
+            [GROUP_URL, guest, HTTPStatus.OK],
+            [PROFILE_URL, guest, HTTPStatus.OK],
+            [self.DETAIL_URL, guest, HTTPStatus.OK],
+            [self.EDIT_URL, guest, HTTPStatus.FOUND],
+            [self.EDIT_URL, another, HTTPStatus.OK],
+            [self.EDIT_URL, not_author, HTTPStatus.FOUND],
+            [CREATE_URL, guest, HTTPStatus.FOUND],
+            [CREATE_URL, another, HTTPStatus.OK],
+            [UNEXIST_URL, guest, HTTPStatus.NOT_FOUND],
         ]
 
         for url, client, code in urls_client_status:

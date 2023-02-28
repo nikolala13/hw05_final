@@ -5,7 +5,7 @@
 {% endblock %}
 {% block content %}
     <h4>Мои подписки</h4>
-    {% include 'includes/switcher.html' %}
+    {% include 'includes/switcher.html' with index=True %}
         {% for post in page_obj %}
             <article>
                 <ul>

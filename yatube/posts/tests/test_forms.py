@@ -27,6 +27,15 @@ class CreateFormTests(TestCase):
             author=cls.user,
             text='Тестовый пост',
         )
+        cls.REVERSE_ADDRESS_EDIT = reverse(
+            'posts:post_edit', args=(cls.post.pk,)
+        )
+        cls.REVERSE_ADDRESS_DETAIL = reverse(
+            'posts:post_detail', args=(cls.post.pk,)
+        )
+        cls.REVERSE_ADRESS_COMMENT = reverse(
+            'posts:add_comment', args=(cls.post.pk,)
+        )
 
     def setUp(self):
         self.authorized_client = Client()
@@ -37,15 +46,6 @@ class CreateFormTests(TestCase):
         self.REVERSE_ADDRESS_CREATE = reverse(
             'posts:post_create'
         )
-        self.REVERSE_ADDRESS_EDIT = reverse(
-            'posts:post_edit', args=(self.post.pk,)
-        )
-        self.REVERSE_ADDRESS_DETAIL = reverse(
-            'posts:post_detail', args=(self.post.pk,)
-        )
-        self.REVERSE_ADRESS_COMMENT = reverse(
-            'posts:add_comment', args=(self.post.pk,)
-        )
 
     @classmethod
     def tearDownClass(cls):
@@ -53,43 +53,7 @@ class CreateFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_create_post(self):
-        """Проверка создания поста."""
-        count_post = Post.objects.count()
-        form_data = {
-            'text': 'Тестовый пост'
-        }
-        response = self.authorized_client.post(
-            self.REVERSE_ADDRESS_CREATE,
-            data=form_data,
-        )
-        post = Post.objects.last()
-        self.assertRedirects(response, self.REVERSE_ADDRESS_PROFILE)
-        self.assertEqual(Post.objects.count(), count_post + 1)
-        self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(post.author, self.user, 'Author')
-
-    def test_edit_post(self):
-        """Редактирование поста прошло успешно."""
-        form_data_new = {
-            'text': 'Тестовый пост'
-        }
-        self.authorized_client.post(
-            self.REVERSE_ADDRESS_EDIT,
-            data=form_data_new,
-        )
-
-        self.assertEqual(Post.objects.last().text,
-                         form_data_new['text'])
-
-    def cheking_context(self, expect_answer):
-        """Проверка контекста страниц."""
-        for obj, answer in expect_answer.items():
-            with self.subTest(obj=obj):
-                resp_context = obj
-                self.assertEqual(resp_context, answer)
-
-    def test_create_post_with_img(self):
-        """Создается пост с картинкой."""
+        """Проверка создания поста с картинкой."""
         post_count = Post.objects.count()
         small_gif = (
             b"\x47\x49\x46\x38\x39\x61\x02\x00"
@@ -105,7 +69,7 @@ class CreateFormTests(TestCase):
             content_type='image/gif'
         )
         form_data = {
-            'text': 'Тестовый текст',
+            'text': 'Тестовый пост',
             'group': self.group.id,
             'image': uploaded,
         }
@@ -125,6 +89,30 @@ class CreateFormTests(TestCase):
             str(last_post.image): str(last_post.image),
         }
         self.cheking_context(expect_answer)
+        post = Post.objects.last()
+        self.assertRedirects(response, self.REVERSE_ADDRESS_PROFILE)
+        self.assertEqual(Post.objects.count(), post_count + 1)
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.author, self.user, 'Author')
+
+    def test_edit_post(self):
+        """Редактирование поста прошло успешно."""
+        form_data_new = {
+            'text': 'Тестовый пост'
+        }
+        self.authorized_client.post(
+            self.REVERSE_ADDRESS_EDIT,
+            data=form_data_new,
+        )
+        self.assertEqual(Post.objects.last().text,
+                         form_data_new['text'])
+
+    def cheking_context(self, expect_answer):
+        """Проверка контекста страниц."""
+        for obj, answer in expect_answer.items():
+            with self.subTest(obj=obj):
+                resp_context = obj
+                self.assertEqual(resp_context, answer)
 
     def test_create_comment_authorized_user(self):
         """Валидная форма создает комментарий."""

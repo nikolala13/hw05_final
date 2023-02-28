@@ -22,7 +22,7 @@ CREATE_URL = reverse('posts:post_create')
 UNEXIST_URL = '/unexisting_page/'
 
 
-class StaticURLTests(TestCase):
+class TemplatesViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
